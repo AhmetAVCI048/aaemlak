@@ -1,0 +1,77 @@
+@import "tailwindcss";
+
+/*
+  Marka renk paleti — emlak için güven (lacivert) + premium vurgu (amber).
+  Geçici logo ve renkler; kuzeninin gerçek marka kimliği gelince burayı güncelleriz.
+*/
+@theme {
+  --color-brand-50: #f0f4f8;
+  --color-brand-100: #d9e2ec;
+  --color-brand-200: #bcccdc;
+  --color-brand-300: #9fb3c8;
+  --color-brand-400: #627d98;
+  --color-brand-500: #486581;
+  --color-brand-600: #334e68;
+  --color-brand-700: #243b53;
+  --color-brand-800: #102a43;
+  --color-brand-900: #0a1d33;
+
+  --color-accent-400: #fbbf24;
+  --color-accent-500: #f59e0b;
+  --color-accent-600: #d97706;
+
+  --font-sans: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  background-color: #f8fafc;
+  color: #102a43;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Anasayfa "Öne Çıkanlar" otomatik kayan şerit (marquee) */
+@keyframes marquee-scroll {
+  from { transform: translateX(0); }
+  to { transform: translateX(-50%); }
+}
+.marquee-track {
+  width: max-content;
+  animation: marquee-scroll 50s linear infinite;
+}
+/* Üzerine gelince dursun (tıklamayı kolaylaştırır) */
+.marquee-pause:hover .marquee-track {
+  animation-play-state: paused;
+}
+@media (prefers-reduced-motion: reduce) {
+  .marquee-track { animation: none; }
+}
+
+/* Kategori şeritleri için ince yatay kaydırma çubuğu */
+.yatay-kaydir {
+  scrollbar-width: thin;
+  scrollbar-color: var(--color-brand-200) transparent;
+}
+.yatay-kaydir::-webkit-scrollbar { height: 6px; }
+.yatay-kaydir::-webkit-scrollbar-thumb {
+  background: var(--color-brand-200);
+  border-radius: 9999px;
+}
+
+/* Filtre paneli ortak input stili */
+.filtre-input {
+  width: 100%;
+  border-radius: 0.5rem;
+  border: 1px solid var(--color-brand-200);
+  background-color: #fff;
+  padding: 0.5rem 0.75rem;
+  font-size: 0.875rem;
+  color: var(--color-brand-800);
+}
+.filtre-input:focus {
+  outline: 2px solid var(--color-accent-400);
+  outline-offset: 1px;
+}
