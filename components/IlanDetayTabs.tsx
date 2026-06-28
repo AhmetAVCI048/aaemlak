@@ -44,18 +44,27 @@ export default function IlanDetayTabs({ ilan }: { ilan: Ilan }) {
       </div>
 
       <div className="p-1 sm:p-2">
-        {/* İlan Bilgileri — alt alta tablo */}
+        {/* İlan Bilgileri — alt alta tablo + detaylı özellikler */}
         {sekme === "bilgiler" && (
-          <table className="w-full text-sm">
-            <tbody>
-              {satirlar.map((s, i) => (
-                <tr key={s.label} className={i % 2 === 0 ? "bg-brand-50/60" : ""}>
-                  <td className="w-2/5 px-4 py-3 font-medium text-brand-500">{s.label}</td>
-                  <td className="px-4 py-3 font-semibold text-brand-800">{s.value}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+          <div>
+            <table className="w-full text-sm">
+              <tbody>
+                {satirlar.map((s, i) => (
+                  <tr key={s.label} className={i % 2 === 0 ? "bg-brand-50/60" : ""}>
+                    <td className="w-2/5 px-4 py-3 font-medium text-brand-500">{s.label}</td>
+                    <td className="px-4 py-3 font-semibold text-brand-800">{s.value}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+
+            <div className="space-y-5 p-4">
+              <OzellikGrubu baslik="Cephe" liste={ilan.cephe} />
+              <OzellikGrubu baslik="Manzara" liste={ilan.manzara} />
+              <OzellikGrubu baslik="İç Özellikler" liste={ilan.icOzellikler} />
+              <OzellikGrubu baslik="Dış Özellikler" liste={ilan.disOzellikler} />
+            </div>
+          </div>
         )}
 
         {/* Açıklama */}
@@ -107,6 +116,26 @@ export default function IlanDetayTabs({ ilan }: { ilan: Ilan }) {
   );
 }
 
+/** Detaylı özellikleri etiket grubu olarak gösterir (boşsa hiç çıkmaz). */
+function OzellikGrubu({ baslik, liste }: { baslik: string; liste?: string[] }) {
+  if (!liste || liste.length === 0) return null;
+  return (
+    <div>
+      <h3 className="mb-2 text-sm font-bold text-brand-800">{baslik}</h3>
+      <div className="flex flex-wrap gap-2">
+        {liste.map((o) => (
+          <span
+            key={o}
+            className="rounded-lg bg-brand-50 px-3 py-1.5 text-sm text-brand-700"
+          >
+            {o}
+          </span>
+        ))}
+      </div>
+    </div>
+  );
+}
+
 /** Detay tablosundaki satırları hazırlar (boş alanları atlar). */
 function bilgiSatirlari(ilan: Ilan): { label: string; value: string }[] {
   const list: { label: string; value: string }[] = [];
@@ -116,7 +145,10 @@ function bilgiSatirlari(ilan: Ilan): { label: string; value: string }[] {
 
   ekle("İlan No", ilan.id);
   ekle("İlan Tarihi", new Date(ilan.olusturmaTarihi).toLocaleDateString("tr-TR"));
-  ekle("Emlak Tipi", `${tipEtiketleri[ilan.tip]} ${kategoriEtiketleri[ilan.kategori]}`);
+  ekle(
+    "Emlak Tipi",
+    `${tipEtiketleri[ilan.tip]} ${ilan.altKategori ?? kategoriEtiketleri[ilan.kategori]}`
+  );
   ekle(
     "Fiyat",
     `${fiyatFormatla(ilan.fiyat)}${ilan.tip === "kiralik" ? " /ay" : ""}`
@@ -124,6 +156,7 @@ function bilgiSatirlari(ilan: Ilan): { label: string; value: string }[] {
   ekle("m² (Brüt)", ilan.brutMetrekare);
   ekle("m² (Net)", ilan.netMetrekare);
   ekle("Oda Sayısı", ilan.odaSayisi);
+  ekle("Banyo Sayısı", ilan.banyoSayisi);
   if (ilan.binaYasi !== undefined)
     ekle("Bina Yaşı", ilan.binaYasi === 0 ? "0 (Oturuma Hazır)" : `${ilan.binaYasi}`);
   ekle("Bulunduğu Kat", ilan.bulunduguKat);

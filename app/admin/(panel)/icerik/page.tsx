@@ -66,9 +66,6 @@ export default function IcerikPage() {
               <PlusIcon className="h-4 w-4" /> Kart Ekle
             </button>
           </div>
-          <p className="mb-4 text-xs text-brand-400">
-            Örnek: “10+ Yıllık Tecrübe”, “500+ Mutlu Müşteri”. Sayı ve etiketi siz belirlersiniz.
-          </p>
 
           <div className="space-y-3">
             {kartlar.map((kart, i) => (

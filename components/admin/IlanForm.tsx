@@ -8,9 +8,17 @@ import {
   type IlanTipi,
   type Kategori,
   type IlanDurumu,
-  kategoriEtiketleri,
 } from "@/lib/listings";
+import {
+  kategoriAgaci,
+  cepheSecenekleri,
+  icOzellikSecenekleri,
+  disOzellikSecenekleri,
+  manzaraSecenekleri,
+} from "@/lib/categories";
 import Harita from "@/components/Harita";
+import KategoriSecici from "./KategoriSecici";
+import CokluSecim from "./CokluSecim";
 import { ImageIcon, TrashIcon, LocationIcon } from "@/components/icons";
 
 const ROZET_SECENEKLERI = ["Acil", "Fırsat", "Fiyat Düştü", "Yeni"];
@@ -24,12 +32,15 @@ export default function IlanForm({ ilan }: { ilan?: Ilan }) {
     aciklama: ilan?.aciklama ?? "",
     tip: (ilan?.tip ?? "satilik") as IlanTipi,
     kategori: (ilan?.kategori ?? "konut") as Kategori,
+    altKategori: ilan?.altKategori ?? "Daire",
     durum: (ilan?.durum ?? "aktif") as IlanDurumu,
     fiyat: ilan?.fiyat?.toString() ?? "",
-    il: ilan?.il ?? "",
-    ilce: ilan?.ilce ?? "",
+    // Bölge çoğunlukla Bodrum olduğu için varsayılan dolu gelir
+    il: ilan?.il ?? "Muğla",
+    ilce: ilan?.ilce ?? "Bodrum",
     mahalle: ilan?.mahalle ?? "",
     odaSayisi: ilan?.odaSayisi ?? "",
+    banyoSayisi: ilan?.banyoSayisi?.toString() ?? "",
     brutMetrekare: ilan?.brutMetrekare?.toString() ?? "",
     netMetrekare: ilan?.netMetrekare?.toString() ?? "",
     binaYasi: ilan?.binaYasi?.toString() ?? "",
@@ -45,38 +56,38 @@ export default function IlanForm({ ilan }: { ilan?: Ilan }) {
   const [video, setVideo] = useState<string>(ilan?.video ?? "");
   const [enlem, setEnlem] = useState<number | undefined>(ilan?.enlem);
   const [boylam, setBoylam] = useState<number | undefined>(ilan?.boylam);
+  const [cephe, setCephe] = useState<string[]>(ilan?.cephe ?? []);
+  const [icOzellikler, setIcOzellikler] = useState<string[]>(ilan?.icOzellikler ?? []);
+  const [disOzellikler, setDisOzellikler] = useState<string[]>(ilan?.disOzellikler ?? []);
+  const [manzara, setManzara] = useState<string[]>(ilan?.manzara ?? []);
   const [kaydedildi, setKaydedildi] = useState(false);
 
   const set = (k: keyof typeof form, v: string | boolean) =>
     setForm((f) => ({ ...f, [k]: v }));
+
+  // Kategori değişince o kategorinin ilk türünü seç
+  const kategoriDegistir = (k: Kategori) =>
+    setForm((f) => ({ ...f, kategori: k, altKategori: kategoriAgaci[k].turler[0] ?? "" }));
 
   const rozetDegistir = (r: string) =>
     setRozetler((list) =>
       list.includes(r) ? list.filter((x) => x !== r) : [...list, r]
     );
 
-  // Fotoğraf seçimi — şimdilik tarayıcıda önizleme. Supabase/Cloudinary bağlanınca
-  // dosyalar gerçekten yüklenecek.
   const fotoEkle = (files: FileList | null) => {
     if (!files) return;
     const yeni = Array.from(files).map((f) => URL.createObjectURL(f));
     setGorseller((g) => [...g, ...yeni]);
   };
-
-  const fotoSil = (url: string) =>
-    setGorseller((g) => g.filter((x) => x !== url));
-
-  // Seçilen fotoğrafı listenin başına alır → kapak yapar.
+  const fotoSil = (url: string) => setGorseller((g) => g.filter((x) => x !== url));
   const kapakYap = (url: string) =>
     setGorseller((g) => [url, ...g.filter((x) => x !== url)]);
-
   const videoEkle = (files: FileList | null) => {
     if (files && files[0]) setVideo(URL.createObjectURL(files[0]));
   };
 
   const kaydet = (e: React.FormEvent) => {
     e.preventDefault();
-    // DEMO: gerçek kayıt Supabase bağlanınca yapılacak. Şimdilik onay gösteriyoruz.
     console.log("Kaydedilecek ilan:", {
       ...form,
       rozetler,
@@ -84,10 +95,16 @@ export default function IlanForm({ ilan }: { ilan?: Ilan }) {
       video,
       enlem,
       boylam,
+      cephe,
+      icOzellikler,
+      disOzellikler,
+      manzara,
     });
     setKaydedildi(true);
-    setTimeout(() => router.push("/admin/ilanlar"), 1200);
+    setTimeout(() => router.push("/admin/ilanlar"), 1000);
   };
+
+  const konutMu = form.kategori === "konut" || form.kategori === "gunluk";
 
   return (
     <form onSubmit={kaydet} className="pb-24">
@@ -95,14 +112,23 @@ export default function IlanForm({ ilan }: { ilan?: Ilan }) {
         <h1 className="text-2xl font-bold text-brand-800">
           {duzenleme ? "İlanı Düzenle" : "Yeni İlan Ekle"}
         </h1>
-        <p className="text-sm text-brand-500">
-          Alanları doldurun, en altta kaydedin. Yıldızlı (*) alanlar zorunludur.
-        </p>
       </div>
 
       <div className="space-y-6">
+        {/* Kategori — adım adım seçim */}
+        <Kart baslik="Kategori Seçimi">
+          <KategoriSecici
+            kategori={form.kategori}
+            tip={form.tip}
+            altKategori={form.altKategori}
+            onKategori={kategoriDegistir}
+            onTip={(t) => set("tip", t)}
+            onAltKategori={(a) => set("altKategori", a)}
+          />
+        </Kart>
+
         {/* Fotoğraflar */}
-        <Kart baslik="Fotoğraflar" ipucu="İlk fotoğraf kapak olarak kullanılır. Net ve aydınlık fotoğraflar daha çok ilgi çeker.">
+        <Kart baslik="Fotoğraflar">
           <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
             {gorseller.map((g, i) => (
               <div key={g} className="group relative aspect-square overflow-hidden rounded-xl border border-brand-100 bg-brand-50">
@@ -135,19 +161,13 @@ export default function IlanForm({ ilan }: { ilan?: Ilan }) {
             <label className="flex aspect-square cursor-pointer flex-col items-center justify-center gap-2 rounded-xl border-2 border-dashed border-brand-200 text-brand-400 transition hover:border-accent-400 hover:text-accent-600">
               <ImageIcon className="h-7 w-7" />
               <span className="text-xs font-medium">Fotoğraf Ekle</span>
-              <input
-                type="file"
-                accept="image/*"
-                multiple
-                className="hidden"
-                onChange={(e) => fotoEkle(e.target.files)}
-              />
+              <input type="file" accept="image/*" multiple className="hidden" onChange={(e) => fotoEkle(e.target.files)} />
             </label>
           </div>
         </Kart>
 
         {/* Video */}
-        <Kart baslik="Tanıtım Videosu" ipucu="İsteğe bağlı. Kısa bir gezinti videosu ilgiyi ciddi şekilde artırır.">
+        <Kart baslik="Tanıtım Videosu">
           {video ? (
             <div className="space-y-3">
               <video src={video} controls className="max-h-64 w-full rounded-xl bg-black" />
@@ -164,12 +184,7 @@ export default function IlanForm({ ilan }: { ilan?: Ilan }) {
             <label className="flex cursor-pointer flex-col items-center justify-center gap-2 rounded-xl border-2 border-dashed border-brand-200 py-8 text-brand-400 transition hover:border-accent-400 hover:text-accent-600">
               <ImageIcon className="h-7 w-7" />
               <span className="text-sm font-medium">Video Yükle</span>
-              <input
-                type="file"
-                accept="video/*"
-                className="hidden"
-                onChange={(e) => videoEkle(e.target.files)}
-              />
+              <input type="file" accept="video/*" className="hidden" onChange={(e) => videoEkle(e.target.files)} />
             </label>
           )}
         </Kart>
@@ -181,24 +196,13 @@ export default function IlanForm({ ilan }: { ilan?: Ilan }) {
               required
               value={form.baslik}
               onChange={(e) => set("baslik", e.target.value)}
-              placeholder="örn. Deniz Manzaralı Lüks 3+1 Daire"
               className="filtre-input"
             />
           </Alan>
 
-          <div className="grid gap-4 sm:grid-cols-3">
-            <Alan label="İlan Tipi *">
-              <select value={form.tip} onChange={(e) => set("tip", e.target.value)} className="filtre-input">
-                <option value="satilik">Satılık</option>
-                <option value="kiralik">Kiralık</option>
-              </select>
-            </Alan>
-            <Alan label="Kategori *">
-              <select value={form.kategori} onChange={(e) => set("kategori", e.target.value)} className="filtre-input">
-                {(Object.keys(kategoriEtiketleri) as Kategori[]).map((k) => (
-                  <option key={k} value={k}>{kategoriEtiketleri[k]}</option>
-                ))}
-              </select>
+          <div className="grid gap-4 sm:grid-cols-2">
+            <Alan label="Fiyat (₺) *">
+              <input required type="number" value={form.fiyat} onChange={(e) => set("fiyat", e.target.value)} className="filtre-input" />
             </Alan>
             <Alan label="Durum *">
               <select value={form.durum} onChange={(e) => set("durum", e.target.value)} className="filtre-input">
@@ -209,23 +213,11 @@ export default function IlanForm({ ilan }: { ilan?: Ilan }) {
             </Alan>
           </div>
 
-          <Alan label="Fiyat (₺) *">
-            <input
-              required
-              type="number"
-              value={form.fiyat}
-              onChange={(e) => set("fiyat", e.target.value)}
-              placeholder="örn. 8500000"
-              className="filtre-input"
-            />
-          </Alan>
-
           <Alan label="Açıklama">
             <textarea
               value={form.aciklama}
               onChange={(e) => set("aciklama", e.target.value)}
               rows={5}
-              placeholder="Evin öne çıkan özelliklerini, çevresini ve avantajlarını yazın…"
               className="filtre-input resize-y"
             />
           </Alan>
@@ -255,32 +247,25 @@ export default function IlanForm({ ilan }: { ilan?: Ilan }) {
         <Kart baslik="Konum">
           <div className="grid gap-4 sm:grid-cols-3">
             <Alan label="İl *">
-              <input required value={form.il} onChange={(e) => set("il", e.target.value)} placeholder="İzmir" className="filtre-input" />
+              <input required value={form.il} onChange={(e) => set("il", e.target.value)} className="filtre-input" />
             </Alan>
             <Alan label="İlçe *">
-              <input required value={form.ilce} onChange={(e) => set("ilce", e.target.value)} placeholder="Karşıyaka" className="filtre-input" />
+              <input required value={form.ilce} onChange={(e) => set("ilce", e.target.value)} className="filtre-input" />
             </Alan>
             <Alan label="Mahalle">
-              <input value={form.mahalle} onChange={(e) => set("mahalle", e.target.value)} placeholder="Bostanlı" className="filtre-input" />
+              <input value={form.mahalle} onChange={(e) => set("mahalle", e.target.value)} className="filtre-input" />
             </Alan>
           </div>
 
-          {/* Harita pini (madde 4) */}
           <div className="pt-2">
-            <div className="mb-1.5 flex items-center justify-between">
-              <span className="text-sm font-medium text-brand-700">
-                Harita Üzerinde Konum
-              </span>
+            <div className="mb-2 flex items-center justify-between">
+              <span className="text-sm font-medium text-brand-700">Harita Üzerinde Konum</span>
               {enlem !== undefined && (
                 <span className="flex items-center gap-1 text-xs text-green-600">
-                  <LocationIcon className="h-3.5 w-3.5" /> Konum işaretlendi
+                  <LocationIcon className="h-3.5 w-3.5" /> İşaretlendi
                 </span>
               )}
             </div>
-            <p className="mb-2 text-xs text-brand-400">
-              Haritaya tıklayarak evin tam yerini işaretleyin. Pini sürükleyerek
-              ince ayar yapabilirsiniz.
-            </p>
             <div className="h-72 overflow-hidden rounded-xl border border-brand-200">
               <Harita
                 enlem={enlem}
@@ -296,92 +281,102 @@ export default function IlanForm({ ilan }: { ilan?: Ilan }) {
         </Kart>
 
         {/* Özellikler */}
-        <Kart baslik="Özellikler" ipucu="Konut dışı ilanlarda (arsa, iş yeri) ilgisiz alanları boş bırakabilirsiniz.">
+        <Kart baslik="Özellikler">
           <div className="grid gap-4 sm:grid-cols-3">
-            <Alan label="Oda Sayısı">
-              <input value={form.odaSayisi} onChange={(e) => set("odaSayisi", e.target.value)} placeholder="3+1" className="filtre-input" />
-            </Alan>
+            {konutMu && (
+              <>
+                <Alan label="Oda Sayısı">
+                  <input value={form.odaSayisi} onChange={(e) => set("odaSayisi", e.target.value)} className="filtre-input" />
+                </Alan>
+                <Alan label="Banyo Sayısı">
+                  <input type="number" value={form.banyoSayisi} onChange={(e) => set("banyoSayisi", e.target.value)} className="filtre-input" />
+                </Alan>
+              </>
+            )}
             <Alan label="Brüt m²">
-              <input type="number" value={form.brutMetrekare} onChange={(e) => set("brutMetrekare", e.target.value)} placeholder="145" className="filtre-input" />
+              <input type="number" value={form.brutMetrekare} onChange={(e) => set("brutMetrekare", e.target.value)} className="filtre-input" />
             </Alan>
             <Alan label="Net m²">
-              <input type="number" value={form.netMetrekare} onChange={(e) => set("netMetrekare", e.target.value)} placeholder="130" className="filtre-input" />
+              <input type="number" value={form.netMetrekare} onChange={(e) => set("netMetrekare", e.target.value)} className="filtre-input" />
             </Alan>
-            <Alan label="Bina Yaşı">
-              <input type="number" value={form.binaYasi} onChange={(e) => set("binaYasi", e.target.value)} placeholder="0 (sıfır)" className="filtre-input" />
-            </Alan>
-            <Alan label="Bulunduğu Kat">
-              <input value={form.bulunduguKat} onChange={(e) => set("bulunduguKat", e.target.value)} placeholder="5. Kat" className="filtre-input" />
-            </Alan>
-            <Alan label="Kat Sayısı">
-              <input type="number" value={form.katSayisi} onChange={(e) => set("katSayisi", e.target.value)} placeholder="8" className="filtre-input" />
-            </Alan>
-            <Alan label="Isıtma">
-              <input value={form.isitma} onChange={(e) => set("isitma", e.target.value)} placeholder="Doğalgaz (Kombi)" className="filtre-input" />
-            </Alan>
-            <Alan label="Aidat (₺)">
-              <input type="number" value={form.aidat} onChange={(e) => set("aidat", e.target.value)} placeholder="1500" className="filtre-input" />
-            </Alan>
+            {konutMu && (
+              <>
+                <Alan label="Bina Yaşı">
+                  <input type="number" value={form.binaYasi} onChange={(e) => set("binaYasi", e.target.value)} className="filtre-input" />
+                </Alan>
+                <Alan label="Bulunduğu Kat">
+                  <input value={form.bulunduguKat} onChange={(e) => set("bulunduguKat", e.target.value)} className="filtre-input" />
+                </Alan>
+                <Alan label="Kat Sayısı">
+                  <input type="number" value={form.katSayisi} onChange={(e) => set("katSayisi", e.target.value)} className="filtre-input" />
+                </Alan>
+                <Alan label="Isıtma">
+                  <input value={form.isitma} onChange={(e) => set("isitma", e.target.value)} className="filtre-input" />
+                </Alan>
+                <Alan label="Aidat (₺)">
+                  <input type="number" value={form.aidat} onChange={(e) => set("aidat", e.target.value)} className="filtre-input" />
+                </Alan>
+              </>
+            )}
           </div>
 
-          <div className="flex flex-wrap gap-6 pt-2">
-            <label className="flex items-center gap-2 text-sm font-medium text-brand-700">
-              <input type="checkbox" checked={form.esyali} onChange={(e) => set("esyali", e.target.checked)} className="h-4 w-4 accent-accent-500" />
-              Eşyalı
-            </label>
-            <label className="flex items-center gap-2 text-sm font-medium text-brand-700">
-              <input type="checkbox" checked={form.krediyeUygun} onChange={(e) => set("krediyeUygun", e.target.checked)} className="h-4 w-4 accent-accent-500" />
-              Krediye Uygun
-            </label>
+          {konutMu && (
+            <div className="flex flex-wrap gap-6 pt-2">
+              <label className="flex items-center gap-2 text-sm font-medium text-brand-700">
+                <input type="checkbox" checked={form.esyali} onChange={(e) => set("esyali", e.target.checked)} className="h-4 w-4 accent-accent-500" />
+                Eşyalı
+              </label>
+              <label className="flex items-center gap-2 text-sm font-medium text-brand-700">
+                <input type="checkbox" checked={form.krediyeUygun} onChange={(e) => set("krediyeUygun", e.target.checked)} className="h-4 w-4 accent-accent-500" />
+                Krediye Uygun
+              </label>
+            </div>
+          )}
+        </Kart>
+
+        {/* Detaylı özellikler — çoklu seçim */}
+        <Kart baslik="Detaylı Özellikler">
+          <div className="space-y-6">
+            <CokluSecim baslik="Cephe" secenekler={cepheSecenekleri} secili={cephe} onChange={setCephe} />
+            <CokluSecim baslik="Manzara" secenekler={manzaraSecenekleri} secili={manzara} onChange={setManzara} />
+            <CokluSecim baslik="İç Özellikler" secenekler={icOzellikSecenekleri} secili={icOzellikler} onChange={setIcOzellikler} />
+            <CokluSecim baslik="Dış Özellikler" secenekler={disOzellikSecenekleri} secili={disOzellikler} onChange={setDisOzellikler} />
           </div>
         </Kart>
       </div>
 
       {/* Sabit kaydet çubuğu */}
       <div className="fixed inset-x-0 bottom-0 z-30 border-t border-brand-100 bg-white/95 px-4 py-3 backdrop-blur lg:left-64">
-        <div className="mx-auto flex max-w-3xl items-center justify-between gap-3">
-          {kaydedildi ? (
-            <span className="text-sm font-semibold text-green-600">
+        <div className="mx-auto flex max-w-3xl items-center justify-end gap-3">
+          {kaydedildi && (
+            <span className="mr-auto text-sm font-semibold text-green-600">
               ✓ Kaydedildi! Yönlendiriliyorsunuz…
             </span>
-          ) : (
-            <span className="text-sm text-brand-400">Değişiklikleri kaydetmeyi unutmayın</span>
           )}
-          <div className="flex gap-3">
-            <button
-              type="button"
-              onClick={() => router.push("/admin/ilanlar")}
-              className="rounded-xl border border-brand-200 px-5 py-2.5 font-medium text-brand-700 transition hover:bg-brand-50"
-            >
-              İptal
-            </button>
-            <button
-              type="submit"
-              className="rounded-xl bg-accent-500 px-6 py-2.5 font-semibold text-brand-900 transition hover:bg-accent-400"
-            >
-              {duzenleme ? "Güncelle" : "Yayınla"}
-            </button>
-          </div>
+          <button
+            type="button"
+            onClick={() => router.push("/admin/ilanlar")}
+            className="rounded-xl border border-brand-200 px-5 py-2.5 font-medium text-brand-700 transition hover:bg-brand-50"
+          >
+            İptal
+          </button>
+          <button
+            type="submit"
+            className="rounded-xl bg-accent-500 px-6 py-2.5 font-semibold text-brand-900 transition hover:bg-accent-400"
+          >
+            {duzenleme ? "Güncelle" : "Yayınla"}
+          </button>
         </div>
       </div>
     </form>
   );
 }
 
-function Kart({
-  baslik,
-  ipucu,
-  children,
-}: {
-  baslik: string;
-  ipucu?: string;
-  children: React.ReactNode;
-}) {
+function Kart({ baslik, children }: { baslik: string; children: React.ReactNode }) {
   return (
     <section className="rounded-2xl border border-brand-100 bg-white p-5 shadow-sm sm:p-6">
-      <h2 className="font-bold text-brand-800">{baslik}</h2>
-      {ipucu && <p className="mb-4 mt-0.5 text-xs text-brand-400">{ipucu}</p>}
-      <div className={`space-y-4 ${ipucu ? "" : "mt-4"}`}>{children}</div>
+      <h2 className="mb-4 font-bold text-brand-800">{baslik}</h2>
+      <div className="space-y-4">{children}</div>
     </section>
   );
 }

@@ -62,7 +62,7 @@ export default function IlanKart({ ilan }: { ilan: Ilan }) {
 
       <div className="flex flex-1 flex-col p-4">
         <span className="mb-1 text-xs font-medium uppercase tracking-wide text-brand-400">
-          {kategoriEtiketleri[ilan.kategori]}
+          {ilan.altKategori ?? kategoriEtiketleri[ilan.kategori]}
         </span>
         <h3 className="mb-2 line-clamp-2 font-semibold text-brand-800 group-hover:text-brand-900">
           {ilan.baslik}

@@ -24,8 +24,8 @@ export default function SiteHeader() {
 
   return (
     <header className="sticky top-0 z-50">
-      {/* Üst yardımcı bar — Instagram / WhatsApp / Ara (madde 3) */}
-      <div className="bg-brand-900 text-brand-100 text-sm">
+      {/* Üst yardımcı bar — yalnızca masaüstü (mobilde ana barda birleşir) */}
+      <div className="hidden bg-brand-900 text-brand-100 text-sm md:block">
         <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-2">
           <a
             href={`tel:${siteConfig.phoneRaw}`}
@@ -87,14 +87,41 @@ export default function SiteHeader() {
             ))}
           </nav>
 
-          {/* Mobil menü butonu */}
-          <button
-            onClick={() => setMenuOpen((v) => !v)}
-            className="rounded-lg p-2 text-brand-800 hover:bg-brand-50 md:hidden"
-            aria-label="Menü"
-          >
-            {menuOpen ? <CloseIcon className="h-6 w-6" /> : <MenuIcon className="h-6 w-6" />}
-          </button>
+          {/* Mobil: Instagram / WhatsApp / Ara + menü tek barda */}
+          <div className="flex items-center gap-1.5 md:hidden">
+            <a
+              href={siteConfig.instagram}
+              target="_blank"
+              rel="noopener noreferrer"
+              aria-label="Instagram"
+              className="rounded-full bg-brand-50 p-2 text-brand-700 transition hover:bg-brand-100"
+            >
+              <InstagramIcon className="h-5 w-5" />
+            </a>
+            <a
+              href={whatsappLink("Merhaba, ilanlarınız hakkında bilgi almak istiyorum.")}
+              target="_blank"
+              rel="noopener noreferrer"
+              aria-label="WhatsApp"
+              className="rounded-full bg-green-600 p-2 text-white transition hover:bg-green-500"
+            >
+              <WhatsAppIcon className="h-5 w-5" />
+            </a>
+            <a
+              href={`tel:${siteConfig.phoneRaw}`}
+              aria-label="Ara"
+              className="rounded-full bg-accent-500 p-2 text-brand-900 transition hover:bg-accent-400"
+            >
+              <PhoneIcon className="h-5 w-5" />
+            </a>
+            <button
+              onClick={() => setMenuOpen((v) => !v)}
+              className="rounded-lg p-2 text-brand-800 hover:bg-brand-50"
+              aria-label="Menü"
+            >
+              {menuOpen ? <CloseIcon className="h-6 w-6" /> : <MenuIcon className="h-6 w-6" />}
+            </button>
+          </div>
         </div>
 
         {/* Mobil açılır menü */}

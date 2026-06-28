@@ -51,11 +51,6 @@ export default function GirisPage() {
           >
             {yukleniyor ? "Giriş yapılıyor…" : "Giriş Yap"}
           </button>
-
-          <p className="rounded-lg bg-brand-50 p-3 text-center text-xs text-brand-400">
-            Demo aşaması: Şimdilik şifre kontrolü yok, doğrudan girebilirsiniz.
-            Gerçek giriş Supabase bağlanınca aktif olacak.
-          </p>
         </form>
       </div>
     </div>

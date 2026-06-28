@@ -15,6 +15,7 @@ export interface Ilan {
   fiyat: number; // TL
   tip: IlanTipi;
   kategori: Kategori;
+  altKategori?: string; // örn. "Daire", "Villa", "Müstakil Ev"
   durum: IlanDurumu;
   rozetler: string[]; // örn. ["Acil", "Fırsat"]
 
@@ -25,6 +26,7 @@ export interface Ilan {
 
   // Özellikler (konut için; diğer kategorilerde bazıları boş olabilir)
   odaSayisi?: string; // "3+1"
+  banyoSayisi?: number;
   brutMetrekare?: number;
   netMetrekare?: number;
   binaYasi?: number;
@@ -34,6 +36,12 @@ export interface Ilan {
   aidat?: number;
   esyali?: boolean;
   krediyeUygun?: boolean;
+
+  // Detaylı özellikler (çoklu seçim listeleri)
+  cephe?: string[];
+  icOzellikler?: string[];
+  disOzellikler?: string[];
+  manzara?: string[];
 
   gorseller: string[]; // ilk görsel kapak fotoğrafıdır
   video?: string; // tanıtım videosu (URL)
@@ -54,12 +62,14 @@ export const ornekIlanlar: Ilan[] = [
     fiyat: 8500000,
     tip: "satilik",
     kategori: "konut",
+    altKategori: "Daire",
     durum: "aktif",
     rozetler: ["Fırsat"],
     il: "İzmir",
     ilce: "Karşıyaka",
     mahalle: "Bostanlı",
     odaSayisi: "3+1",
+    banyoSayisi: 2,
     brutMetrekare: 145,
     netMetrekare: 130,
     binaYasi: 0,
@@ -69,6 +79,10 @@ export const ornekIlanlar: Ilan[] = [
     aidat: 1500,
     esyali: false,
     krediyeUygun: true,
+    cephe: ["Güney", "Batı"],
+    icOzellikler: ["Ankastre Mutfak", "Klima", "Ebeveyn Banyosu", "Çelik Kapı", "Balkon"],
+    disOzellikler: ["Asansör", "Kapalı Otopark", "Güvenlik", "Açık Yüzme Havuzu"],
+    manzara: ["Deniz"],
     gorseller: [
       "https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?w=1200&q=80",
       "https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?w=1200&q=80",

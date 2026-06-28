@@ -4,6 +4,7 @@ import { useMemo, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import {
   ornekIlanlar,
+  type Ilan,
   type IlanTipi,
   type Kategori,
   kategoriEtiketleri,
@@ -16,7 +17,6 @@ const ODA_SECENEKLERI = ["1+1", "2+1", "3+1", "4+1", "5+1"];
 export default function IlanlarClient() {
   const params = useSearchParams();
 
-  // Anasayfadaki hızlı erişim linklerinden gelen başlangıç filtreleri
   const [tip, setTip] = useState<IlanTipi | "">((params.get("tip") as IlanTipi) || "");
   const [kategori, setKategori] = useState<Kategori | "">(
     (params.get("kategori") as Kategori) || ""
@@ -28,31 +28,56 @@ export default function IlanlarClient() {
   const [konum, setKonum] = useState(params.get("konum") || "");
   const [siralama, setSiralama] = useState<"yeni" | "ucuz" | "pahali">("yeni");
 
-  const sonuclar = useMemo(() => {
-    let list = ornekIlanlar.filter((i) => {
-      if (tip && i.tip !== tip) return false;
-      if (kategori && i.kategori !== kategori) return false;
-      if (minFiyat && i.fiyat < Number(minFiyat)) return false;
-      if (maxFiyat && i.fiyat > Number(maxFiyat)) return false;
-      if (oda && i.odaSayisi !== oda) return false;
-      if (maxYas && (i.binaYasi === undefined || i.binaYasi > Number(maxYas)))
-        return false;
-      if (konum) {
-        const q = konum.toLocaleLowerCase("tr");
-        const yer = `${i.il} ${i.ilce} ${i.mahalle}`.toLocaleLowerCase("tr");
-        if (!yer.includes(q)) return false;
-      }
-      return true;
-    });
+  // Bir ilanın filtrelere uyup uymadığı; "haric" verilen filtreyi atlar
+  // (böylece o filtrenin seçenek dağarcığını diğerlerine göre hesaplayabiliriz).
+  const gecer = (i: Ilan, haric: string): boolean => {
+    if (haric !== "tip" && tip && i.tip !== tip) return false;
+    if (haric !== "kategori" && kategori && i.kategori !== kategori) return false;
+    if (haric !== "fiyat" && minFiyat && i.fiyat < Number(minFiyat)) return false;
+    if (haric !== "fiyat" && maxFiyat && i.fiyat > Number(maxFiyat)) return false;
+    if (haric !== "oda" && oda && i.odaSayisi !== oda) return false;
+    if (haric !== "yas" && maxYas && (i.binaYasi === undefined || i.binaYasi > Number(maxYas)))
+      return false;
+    if (haric !== "konum" && konum) {
+      const q = konum.toLocaleLowerCase("tr");
+      const yer = `${i.il} ${i.ilce} ${i.mahalle}`.toLocaleLowerCase("tr");
+      if (!yer.includes(q)) return false;
+    }
+    return true;
+  };
 
-    list = [...list].sort((a, b) => {
+  const sonuclar = useMemo(() => {
+    const list = ornekIlanlar.filter((i) => gecer(i, ""));
+    return [...list].sort((a, b) => {
       if (siralama === "ucuz") return a.fiyat - b.fiyat;
       if (siralama === "pahali") return b.fiyat - a.fiyat;
       return b.olusturmaTarihi.localeCompare(a.olusturmaTarihi);
     });
-
-    return list;
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [tip, kategori, minFiyat, maxFiyat, oda, maxYas, konum, siralama]);
+
+  // Diğer filtrelere göre uygun seçenekler (faceted daraltma)
+  const mevcutTip = useMemo(
+    () => (["satilik", "kiralik"] as IlanTipi[]).filter((t) =>
+      ornekIlanlar.some((i) => i.tip === t && gecer(i, "tip"))
+    ),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [kategori, minFiyat, maxFiyat, oda, maxYas, konum]
+  );
+  const mevcutKategori = useMemo(
+    () => (Object.keys(kategoriEtiketleri) as Kategori[]).filter((k) =>
+      ornekIlanlar.some((i) => i.kategori === k && gecer(i, "kategori"))
+    ),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [tip, minFiyat, maxFiyat, oda, maxYas, konum]
+  );
+  const mevcutOda = useMemo(
+    () => ODA_SECENEKLERI.filter((o) =>
+      ornekIlanlar.some((i) => i.odaSayisi === o && gecer(i, "oda"))
+    ),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [tip, kategori, minFiyat, maxFiyat, maxYas, konum]
+  );
 
   const filtreleriTemizle = () => {
     setTip("");
@@ -99,8 +124,8 @@ export default function IlanlarClient() {
                 className="filtre-input"
               >
                 <option value="">Tümü</option>
-                <option value="satilik">Satılık</option>
-                <option value="kiralik">Kiralık</option>
+                <option value="satilik" disabled={!mevcutTip.includes("satilik")}>Satılık</option>
+                <option value="kiralik" disabled={!mevcutTip.includes("kiralik")}>Kiralık</option>
               </select>
             </Field>
 
@@ -112,7 +137,7 @@ export default function IlanlarClient() {
               >
                 <option value="">Tümü</option>
                 {(Object.keys(kategoriEtiketleri) as Kategori[]).map((k) => (
-                  <option key={k} value={k}>
+                  <option key={k} value={k} disabled={!mevcutKategori.includes(k)}>
                     {kategoriEtiketleri[k]}
                   </option>
                 ))}
@@ -146,7 +171,7 @@ export default function IlanlarClient() {
               >
                 <option value="">Farketmez</option>
                 {ODA_SECENEKLERI.map((o) => (
-                  <option key={o} value={o}>
+                  <option key={o} value={o} disabled={!mevcutOda.includes(o)}>
                     {o}
                   </option>
                 ))}
