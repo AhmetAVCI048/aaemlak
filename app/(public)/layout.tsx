@@ -1,5 +1,6 @@
 import SiteHeader from "@/components/SiteHeader";
 import Footer from "@/components/Footer";
+import FloatingContact from "@/components/FloatingContact";
 
 /* Herkese açık site düzeni — başlık + altbilgi burada. Admin bunları görmez. */
 export default function PublicLayout({
@@ -12,6 +13,7 @@ export default function PublicLayout({
       <SiteHeader />
       <main className="flex-1">{children}</main>
       <Footer />
+      <FloatingContact />
     </div>
   );
 }

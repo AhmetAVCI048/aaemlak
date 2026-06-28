@@ -61,6 +61,29 @@ body {
   border-radius: 9999px;
 }
 
+/* Hero cam (glassmorphism) arama kutusu input stili */
+.cam-input {
+  width: 100%;
+  border-radius: 0.75rem;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  background-color: rgba(255, 255, 255, 0.12);
+  padding: 0.85rem 1rem;
+  font-size: 0.95rem;
+  color: #fff;
+}
+.cam-input::placeholder {
+  color: rgba(255, 255, 255, 0.75);
+}
+.cam-input:focus {
+  outline: 2px solid var(--color-accent-400);
+  outline-offset: 1px;
+  background-color: rgba(255, 255, 255, 0.18);
+}
+/* Açılır menü seçenekleri koyu zeminde okunur olsun */
+.cam-input option {
+  color: #102a43;
+}
+
 /* Filtre paneli ortak input stili */
 .filtre-input {
   width: 100%;
