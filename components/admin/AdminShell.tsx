@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState } from "react";
-import Logo from "@/components/Logo";
+import LogoMark from "@/components/LogoMark";
 import {
   DashboardIcon,
   ListIcon,
@@ -50,7 +50,7 @@ export default function AdminShell({ children }: { children: React.ReactNode }) 
         >
           <div className="flex h-full flex-col p-4">
             <div className="mb-6 hidden items-center gap-3 px-2 pt-2 lg:flex">
-              <Logo className="h-12 w-auto text-white" />
+              <LogoMark className="h-12 w-auto text-white" />
               <div className="text-xs font-medium text-brand-400">Yönetim Paneli</div>
             </div>
 

@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { siteConfig } from "@/lib/site-config";
-import Logo from "./Logo";
+import LogoMark from "./LogoMark";
 import { InstagramIcon, WhatsAppIcon, PhoneIcon, LocationIcon } from "./icons";
 
 export default function Footer() {
@@ -8,7 +8,7 @@ export default function Footer() {
     <footer className="mt-16 bg-brand-900 text-brand-100">
       <div className="mx-auto grid max-w-7xl gap-8 px-4 py-12 sm:grid-cols-2 md:grid-cols-3">
         <div>
-          <Logo className="mb-3 h-16 w-auto text-white" />
+          <LogoMark className="mb-3 h-16 w-auto text-white" />
           <p className="text-sm text-brand-300">{siteConfig.tagline}</p>
         </div>
 

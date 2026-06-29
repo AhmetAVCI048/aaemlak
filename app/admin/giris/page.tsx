@@ -2,7 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { useState } from "react";
-import Logo from "@/components/Logo";
+import LogoMark from "@/components/LogoMark";
 import { supabaseTarayici } from "@/lib/supabase/client";
 
 export default function GirisPage() {
@@ -38,7 +38,7 @@ export default function GirisPage() {
     <div className="flex min-h-screen items-center justify-center bg-brand-900 px-4">
       <div className="w-full max-w-sm">
         <div className="mb-6 text-center">
-          <Logo className="mx-auto mb-3 h-20 w-auto text-white" />
+          <LogoMark className="mx-auto mb-3 h-20 w-auto text-white" />
           <p className="text-sm text-brand-400">Yönetim Paneli Girişi</p>
         </div>
 
