@@ -9,6 +9,7 @@ import {
   tipEtiketleri,
   kategoriEtiketleri,
 } from "@/lib/listings";
+import { supabaseTarayici } from "@/lib/supabase/client";
 import { EditIcon, TrashIcon, PlusIcon } from "@/components/icons";
 
 const durumStil: Record<Ilan["durum"], { etiket: string; sinif: string }> = {
@@ -21,9 +22,14 @@ export default function IlanlarTablo({ baslangic }: { baslangic: Ilan[] }) {
   const [ilanlar, setIlanlar] = useState(baslangic);
   const [silinecek, setSilinecek] = useState<Ilan | null>(null);
 
-  // Sahte silme: şimdilik sadece ekrandan kaldırır. Supabase bağlanınca kalıcı olacak.
-  const sil = () => {
-    if (silinecek) setIlanlar((l) => l.filter((i) => i.id !== silinecek.id));
+  const sil = async () => {
+    if (!silinecek) return;
+    const id = silinecek.id;
+    const sb = supabaseTarayici();
+    if (sb) {
+      await sb.from("ilanlar").delete().eq("id", id);
+    }
+    setIlanlar((l) => l.filter((i) => i.id !== id));
     setSilinecek(null);
   };
 

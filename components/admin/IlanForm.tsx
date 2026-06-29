@@ -2,7 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { useState } from "react";
-import Image from "next/image";
+import type { SupabaseClient } from "@supabase/supabase-js";
 import {
   type Ilan,
   type IlanTipi,
@@ -16,12 +16,26 @@ import {
   disOzellikSecenekleri,
   manzaraSecenekleri,
 } from "@/lib/categories";
+import { supabaseTarayici } from "@/lib/supabase/client";
 import Harita from "@/components/Harita";
 import KategoriSecici from "./KategoriSecici";
 import CokluSecim from "./CokluSecim";
 import { ImageIcon, TrashIcon, LocationIcon } from "@/components/icons";
 
 const ROZET_SECENEKLERI = ["Acil", "Fırsat", "Fiyat Düştü", "Yeni"];
+
+type Medya = { url: string; file?: File };
+
+/** Dosyayı Supabase deposuna yükler ve herkese açık URL'ini döner. */
+async function medyaYukle(sb: SupabaseClient, file: File): Promise<string> {
+  const uzanti = file.name.split(".").pop() ?? "bin";
+  const ad = `${Date.now()}-${Math.random().toString(36).slice(2)}.${uzanti}`;
+  const { error } = await sb.storage.from("ilan-medya").upload(ad, file, {
+    cacheControl: "3600",
+  });
+  if (error) throw error;
+  return sb.storage.from("ilan-medya").getPublicUrl(ad).data.publicUrl;
+}
 
 export default function IlanForm({ ilan }: { ilan?: Ilan }) {
   const router = useRouter();
@@ -35,7 +49,6 @@ export default function IlanForm({ ilan }: { ilan?: Ilan }) {
     altKategori: ilan?.altKategori ?? "Daire",
     durum: (ilan?.durum ?? "aktif") as IlanDurumu,
     fiyat: ilan?.fiyat?.toString() ?? "",
-    // Bölge çoğunlukla Bodrum olduğu için varsayılan dolu gelir
     il: ilan?.il ?? "Muğla",
     ilce: ilan?.ilce ?? "Bodrum",
     mahalle: ilan?.mahalle ?? "",
@@ -52,20 +65,24 @@ export default function IlanForm({ ilan }: { ilan?: Ilan }) {
     krediyeUygun: ilan?.krediyeUygun ?? false,
   });
   const [rozetler, setRozetler] = useState<string[]>(ilan?.rozetler ?? []);
-  const [gorseller, setGorseller] = useState<string[]>(ilan?.gorseller ?? []);
-  const [video, setVideo] = useState<string>(ilan?.video ?? "");
+  const [gorseller, setGorseller] = useState<Medya[]>(
+    (ilan?.gorseller ?? []).map((u) => ({ url: u }))
+  );
+  const [video, setVideo] = useState<Medya | null>(
+    ilan?.video ? { url: ilan.video } : null
+  );
   const [enlem, setEnlem] = useState<number | undefined>(ilan?.enlem);
   const [boylam, setBoylam] = useState<number | undefined>(ilan?.boylam);
   const [cephe, setCephe] = useState<string[]>(ilan?.cephe ?? []);
   const [icOzellikler, setIcOzellikler] = useState<string[]>(ilan?.icOzellikler ?? []);
   const [disOzellikler, setDisOzellikler] = useState<string[]>(ilan?.disOzellikler ?? []);
   const [manzara, setManzara] = useState<string[]>(ilan?.manzara ?? []);
-  const [kaydedildi, setKaydedildi] = useState(false);
+  const [kaydediliyor, setKaydediliyor] = useState(false);
+  const [hata, setHata] = useState("");
 
   const set = (k: keyof typeof form, v: string | boolean) =>
     setForm((f) => ({ ...f, [k]: v }));
 
-  // Kategori değişince o kategorinin ilk türünü seç
   const kategoriDegistir = (k: Kategori) =>
     setForm((f) => ({ ...f, kategori: k, altKategori: kategoriAgaci[k].turler[0] ?? "" }));
 
@@ -76,32 +93,89 @@ export default function IlanForm({ ilan }: { ilan?: Ilan }) {
 
   const fotoEkle = (files: FileList | null) => {
     if (!files) return;
-    const yeni = Array.from(files).map((f) => URL.createObjectURL(f));
+    const yeni = Array.from(files).map((f) => ({ url: URL.createObjectURL(f), file: f }));
     setGorseller((g) => [...g, ...yeni]);
   };
-  const fotoSil = (url: string) => setGorseller((g) => g.filter((x) => x !== url));
+  const fotoSil = (url: string) => setGorseller((g) => g.filter((x) => x.url !== url));
   const kapakYap = (url: string) =>
-    setGorseller((g) => [url, ...g.filter((x) => x !== url)]);
+    setGorseller((g) => {
+      const secilen = g.find((x) => x.url === url);
+      if (!secilen) return g;
+      return [secilen, ...g.filter((x) => x.url !== url)];
+    });
   const videoEkle = (files: FileList | null) => {
-    if (files && files[0]) setVideo(URL.createObjectURL(files[0]));
+    if (files && files[0]) setVideo({ url: URL.createObjectURL(files[0]), file: files[0] });
   };
 
-  const kaydet = (e: React.FormEvent) => {
+  const sayi = (v: string): number | null => (v.trim() === "" ? null : Number(v));
+
+  const kaydet = async (e: React.FormEvent) => {
     e.preventDefault();
-    console.log("Kaydedilecek ilan:", {
-      ...form,
-      rozetler,
-      gorseller,
-      video,
-      enlem,
-      boylam,
-      cephe,
-      icOzellikler,
-      disOzellikler,
-      manzara,
-    });
-    setKaydedildi(true);
-    setTimeout(() => router.push("/admin/ilanlar"), 1000);
+    setHata("");
+    setKaydediliyor(true);
+
+    const sb = supabaseTarayici();
+    if (!sb) {
+      // Supabase yapılandırılmadıysa demo davranışı
+      setTimeout(() => router.push("/admin/ilanlar"), 800);
+      return;
+    }
+
+    try {
+      // 1) Yeni dosyaları depoya yükle, mevcut URL'leri koru
+      const gorselUrlleri: string[] = [];
+      for (const g of gorseller) {
+        gorselUrlleri.push(g.file ? await medyaYukle(sb, g.file) : g.url);
+      }
+      let videoUrl: string | null = video?.url ?? null;
+      if (video?.file) videoUrl = await medyaYukle(sb, video.file);
+
+      // 2) Satırı hazırla
+      const satir = {
+        baslik: form.baslik,
+        aciklama: form.aciklama,
+        fiyat: Number(form.fiyat) || 0,
+        tip: form.tip,
+        kategori: form.kategori,
+        alt_kategori: form.altKategori || null,
+        durum: form.durum,
+        rozetler,
+        il: form.il,
+        ilce: form.ilce,
+        mahalle: form.mahalle,
+        oda_sayisi: form.odaSayisi || null,
+        banyo_sayisi: sayi(form.banyoSayisi),
+        brut_metrekare: sayi(form.brutMetrekare),
+        net_metrekare: sayi(form.netMetrekare),
+        bina_yasi: sayi(form.binaYasi),
+        bulundugu_kat: form.bulunduguKat || null,
+        kat_sayisi: sayi(form.katSayisi),
+        isitma: form.isitma || null,
+        aidat: sayi(form.aidat),
+        esyali: form.esyali,
+        krediye_uygun: form.krediyeUygun,
+        cephe,
+        ic_ozellikler: icOzellikler,
+        dis_ozellikler: disOzellikler,
+        manzara,
+        gorseller: gorselUrlleri,
+        video: videoUrl,
+        enlem: enlem ?? null,
+        boylam: boylam ?? null,
+      };
+
+      // 3) Ekle veya güncelle
+      const sonuc = duzenleme
+        ? await sb.from("ilanlar").update(satir).eq("id", ilan!.id)
+        : await sb.from("ilanlar").insert(satir);
+      if (sonuc.error) throw sonuc.error;
+
+      router.push("/admin/ilanlar");
+      router.refresh();
+    } catch (err) {
+      setHata("Kayıt sırasında hata: " + (err as Error).message);
+      setKaydediliyor(false);
+    }
   };
 
   const konutMu = form.kategori === "konut" || form.kategori === "gunluk";
@@ -115,7 +189,7 @@ export default function IlanForm({ ilan }: { ilan?: Ilan }) {
       </div>
 
       <div className="space-y-6">
-        {/* Kategori — adım adım seçim */}
+        {/* Kategori */}
         <Kart baslik="Kategori Seçimi">
           <KategoriSecici
             kategori={form.kategori}
@@ -131,8 +205,9 @@ export default function IlanForm({ ilan }: { ilan?: Ilan }) {
         <Kart baslik="Fotoğraflar">
           <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
             {gorseller.map((g, i) => (
-              <div key={g} className="group relative aspect-square overflow-hidden rounded-xl border border-brand-100 bg-brand-50">
-                <Image src={g} alt="" fill sizes="160px" className="object-cover" />
+              <div key={g.url} className="group relative aspect-square overflow-hidden rounded-xl border border-brand-100 bg-brand-50">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img src={g.url} alt="" className="h-full w-full object-cover" />
                 {i === 0 && (
                   <span className="absolute left-1.5 top-1.5 rounded-md bg-accent-500 px-2 py-0.5 text-xs font-bold text-brand-900">
                     Kapak
@@ -140,7 +215,7 @@ export default function IlanForm({ ilan }: { ilan?: Ilan }) {
                 )}
                 <button
                   type="button"
-                  onClick={() => fotoSil(g)}
+                  onClick={() => fotoSil(g.url)}
                   className="absolute right-1.5 top-1.5 rounded-md bg-red-600 p-1.5 text-white opacity-0 transition group-hover:opacity-100"
                   aria-label="Fotoğrafı sil"
                 >
@@ -149,7 +224,7 @@ export default function IlanForm({ ilan }: { ilan?: Ilan }) {
                 {i !== 0 && (
                   <button
                     type="button"
-                    onClick={() => kapakYap(g)}
+                    onClick={() => kapakYap(g.url)}
                     className="absolute inset-x-1.5 bottom-1.5 rounded-md bg-brand-900/85 py-1.5 text-xs font-semibold text-white opacity-0 transition hover:bg-brand-900 group-hover:opacity-100"
                   >
                     Kapak Yap
@@ -170,10 +245,10 @@ export default function IlanForm({ ilan }: { ilan?: Ilan }) {
         <Kart baslik="Tanıtım Videosu">
           {video ? (
             <div className="space-y-3">
-              <video src={video} controls className="max-h-64 w-full rounded-xl bg-black" />
+              <video src={video.url} controls className="max-h-64 w-full rounded-xl bg-black" />
               <button
                 type="button"
-                onClick={() => setVideo("")}
+                onClick={() => setVideo(null)}
                 className="flex items-center gap-1.5 text-sm font-medium text-red-600 hover:text-red-500"
               >
                 <TrashIcon className="h-4 w-4" />
@@ -192,12 +267,7 @@ export default function IlanForm({ ilan }: { ilan?: Ilan }) {
         {/* Temel bilgiler */}
         <Kart baslik="Temel Bilgiler">
           <Alan label="İlan Başlığı *">
-            <input
-              required
-              value={form.baslik}
-              onChange={(e) => set("baslik", e.target.value)}
-              className="filtre-input"
-            />
+            <input required value={form.baslik} onChange={(e) => set("baslik", e.target.value)} className="filtre-input" />
           </Alan>
 
           <div className="grid gap-4 sm:grid-cols-2">
@@ -214,12 +284,7 @@ export default function IlanForm({ ilan }: { ilan?: Ilan }) {
           </div>
 
           <Alan label="Açıklama">
-            <textarea
-              value={form.aciklama}
-              onChange={(e) => set("aciklama", e.target.value)}
-              rows={5}
-              className="filtre-input resize-y"
-            />
+            <textarea value={form.aciklama} onChange={(e) => set("aciklama", e.target.value)} rows={5} className="filtre-input resize-y" />
           </Alan>
 
           <div>
@@ -334,7 +399,7 @@ export default function IlanForm({ ilan }: { ilan?: Ilan }) {
           )}
         </Kart>
 
-        {/* Detaylı özellikler — çoklu seçim */}
+        {/* Detaylı özellikler */}
         <Kart baslik="Detaylı Özellikler">
           <div className="space-y-6">
             <CokluSecim baslik="Cephe" secenekler={cepheSecenekleri} secili={cephe} onChange={setCephe} />
@@ -348,11 +413,7 @@ export default function IlanForm({ ilan }: { ilan?: Ilan }) {
       {/* Sabit kaydet çubuğu */}
       <div className="fixed inset-x-0 bottom-0 z-30 border-t border-brand-100 bg-white/95 px-4 py-3 backdrop-blur lg:left-64">
         <div className="mx-auto flex max-w-3xl items-center justify-end gap-3">
-          {kaydedildi && (
-            <span className="mr-auto text-sm font-semibold text-green-600">
-              ✓ Kaydedildi! Yönlendiriliyorsunuz…
-            </span>
-          )}
+          {hata && <span className="mr-auto text-sm font-medium text-red-600">{hata}</span>}
           <button
             type="button"
             onClick={() => router.push("/admin/ilanlar")}
@@ -362,9 +423,10 @@ export default function IlanForm({ ilan }: { ilan?: Ilan }) {
           </button>
           <button
             type="submit"
-            className="rounded-xl bg-accent-500 px-6 py-2.5 font-semibold text-brand-900 transition hover:bg-accent-400"
+            disabled={kaydediliyor}
+            className="rounded-xl bg-accent-500 px-6 py-2.5 font-semibold text-brand-900 transition hover:bg-accent-400 disabled:opacity-60"
           >
-            {duzenleme ? "Güncelle" : "Yayınla"}
+            {kaydediliyor ? "Kaydediliyor…" : duzenleme ? "Güncelle" : "Yayınla"}
           </button>
         </div>
       </div>
