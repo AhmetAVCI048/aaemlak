@@ -46,10 +46,10 @@ export default async function IlanDetayPage({ params }: Props) {
   // "Hemen mesaj at" için hazır WhatsApp mesajı
   const mesaj = `Merhaba, web sitenizdeki şu ilanla ilgileniyorum:
 
-🏠 ${ilan.baslik}
-🔖 İlan No: ${ilan.id}
-💰 Fiyat: ${fiyatFormatla(ilan.fiyat)}${ilan.tip === "kiralik" ? " /ay" : ""}
-📍 Konum: ${ilan.mahalle}, ${ilan.ilce}/${ilan.il}
+İlan: ${ilan.baslik}
+İlan No: ${ilan.id}
+Fiyat: ${fiyatFormatla(ilan.fiyat)}${ilan.tip === "kiralik" ? " /ay" : ""}
+Konum: ${ilan.mahalle}, ${ilan.ilce}/${ilan.il}
 
 Detaylı bilgi alabilir miyim?`;
 

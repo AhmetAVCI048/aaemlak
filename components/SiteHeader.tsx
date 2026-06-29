@@ -19,63 +19,22 @@ const navLinks = [
   { href: "/iletisim", label: "İletişim" },
 ];
 
+// Instagram'ın kendi marka gradyanı
+const instaGradient = "bg-[linear-gradient(45deg,#feda75,#d62976,#4f5bd5)]";
+
 export default function SiteHeader() {
   const [menuOpen, setMenuOpen] = useState(false);
 
   return (
-    <header className="sticky top-0 z-50">
-      {/* Üst yardımcı bar — yalnızca masaüstü (mobilde ana barda birleşir) */}
-      <div className="hidden bg-brand-900 text-brand-100 text-sm md:block">
-        <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-2">
-          <a
-            href={`tel:${siteConfig.phoneRaw}`}
-            className="hidden items-center gap-2 transition hover:text-accent-400 sm:flex"
-          >
-            <PhoneIcon className="h-4 w-4" />
-            <span>{siteConfig.phone}</span>
-          </a>
-          <div className="flex items-center gap-2 sm:gap-3">
-            <a
-              href={siteConfig.instagram}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="flex items-center gap-1.5 rounded-full bg-white/10 px-3 py-1.5 transition hover:bg-white/20"
-              aria-label="Instagram"
-            >
-              <InstagramIcon className="h-4 w-4" />
-              <span className="hidden sm:inline">Instagram</span>
-            </a>
-            <a
-              href={whatsappLink("Merhaba, ilanlarınız hakkında bilgi almak istiyorum.")}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="flex items-center gap-1.5 rounded-full bg-green-600 px-3 py-1.5 font-medium text-white transition hover:bg-green-500"
-              aria-label="WhatsApp"
-            >
-              <WhatsAppIcon className="h-4 w-4" />
-              <span className="hidden sm:inline">WhatsApp</span>
-            </a>
-            <a
-              href={`tel:${siteConfig.phoneRaw}`}
-              className="flex items-center gap-1.5 rounded-full bg-accent-500 px-3 py-1.5 font-medium text-brand-900 transition hover:bg-accent-400"
-              aria-label="Ara"
-            >
-              <PhoneIcon className="h-4 w-4" />
-              <span className="hidden sm:inline">Ara</span>
-            </a>
-          </div>
-        </div>
-      </div>
+    <header className="sticky top-0 z-50 border-b border-brand-100 bg-white/95 backdrop-blur">
+      <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-3">
+        <Link href="/" aria-label={siteConfig.brandName}>
+          <Logo className="h-12 w-auto text-brand-900 md:h-16" />
+        </Link>
 
-      {/* Ana navigasyon */}
-      <div className="border-b border-brand-100 bg-white/95 backdrop-blur">
-        <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-3">
-          <Link href="/" className="flex items-center gap-2" aria-label={siteConfig.brandName}>
-            <Logo className="h-12 w-auto text-brand-900" />
-          </Link>
-
-          {/* Masaüstü menü */}
-          <nav className="hidden items-center gap-1 md:flex">
+        {/* Masaüstü: menü + iletişim butonları */}
+        <div className="hidden items-center gap-6 md:flex">
+          <nav className="flex items-center gap-1">
             {navLinks.map((link) => (
               <Link
                 key={link.href}
@@ -86,60 +45,90 @@ export default function SiteHeader() {
               </Link>
             ))}
           </nav>
-
-          {/* Mobil: Instagram / WhatsApp / Ara + menü tek barda */}
-          <div className="flex items-center gap-1.5 md:hidden">
+          <div className="flex items-center gap-2">
             <a
               href={siteConfig.instagram}
               target="_blank"
               rel="noopener noreferrer"
               aria-label="Instagram"
-              className="rounded-full bg-brand-50 p-2 text-brand-700 transition hover:bg-brand-100"
+              className={`flex items-center gap-1.5 rounded-full px-3 py-2 font-medium text-white transition hover:opacity-90 ${instaGradient}`}
             >
-              <InstagramIcon className="h-5 w-5" />
+              <InstagramIcon className="h-4 w-4" />
+              <span className="hidden lg:inline">Instagram</span>
             </a>
             <a
               href={whatsappLink("Merhaba, ilanlarınız hakkında bilgi almak istiyorum.")}
               target="_blank"
               rel="noopener noreferrer"
               aria-label="WhatsApp"
-              className="rounded-full bg-green-600 p-2 text-white transition hover:bg-green-500"
+              className="flex items-center gap-1.5 rounded-full bg-green-600 px-3 py-2 font-medium text-white transition hover:bg-green-500"
             >
-              <WhatsAppIcon className="h-5 w-5" />
+              <WhatsAppIcon className="h-4 w-4" />
+              <span className="hidden lg:inline">WhatsApp</span>
             </a>
             <a
               href={`tel:${siteConfig.phoneRaw}`}
               aria-label="Ara"
-              className="rounded-full bg-accent-500 p-2 text-brand-900 transition hover:bg-accent-400"
+              className="flex items-center gap-1.5 rounded-full bg-accent-500 px-3 py-2 font-medium text-brand-900 transition hover:bg-accent-400"
             >
-              <PhoneIcon className="h-5 w-5" />
+              <PhoneIcon className="h-4 w-4" />
+              <span className="hidden lg:inline">Ara</span>
             </a>
-            <button
-              onClick={() => setMenuOpen((v) => !v)}
-              className="rounded-lg p-2 text-brand-800 hover:bg-brand-50"
-              aria-label="Menü"
-            >
-              {menuOpen ? <CloseIcon className="h-6 w-6" /> : <MenuIcon className="h-6 w-6" />}
-            </button>
           </div>
         </div>
 
-        {/* Mobil açılır menü */}
-        {menuOpen && (
-          <nav className="border-t border-brand-100 bg-white px-4 py-2 md:hidden">
-            {navLinks.map((link) => (
-              <Link
-                key={link.href}
-                href={link.href}
-                onClick={() => setMenuOpen(false)}
-                className="block rounded-lg px-4 py-3 font-medium text-brand-700 transition hover:bg-brand-50"
-              >
-                {link.label}
-              </Link>
-            ))}
-          </nav>
-        )}
+        {/* Mobil: Instagram / WhatsApp / Ara + menü */}
+        <div className="flex items-center gap-1.5 md:hidden">
+          <a
+            href={siteConfig.instagram}
+            target="_blank"
+            rel="noopener noreferrer"
+            aria-label="Instagram"
+            className={`rounded-full p-2 text-white ${instaGradient}`}
+          >
+            <InstagramIcon className="h-5 w-5" />
+          </a>
+          <a
+            href={whatsappLink("Merhaba, ilanlarınız hakkında bilgi almak istiyorum.")}
+            target="_blank"
+            rel="noopener noreferrer"
+            aria-label="WhatsApp"
+            className="rounded-full bg-green-600 p-2 text-white transition hover:bg-green-500"
+          >
+            <WhatsAppIcon className="h-5 w-5" />
+          </a>
+          <a
+            href={`tel:${siteConfig.phoneRaw}`}
+            aria-label="Ara"
+            className="rounded-full bg-accent-500 p-2 text-brand-900 transition hover:bg-accent-400"
+          >
+            <PhoneIcon className="h-5 w-5" />
+          </a>
+          <button
+            onClick={() => setMenuOpen((v) => !v)}
+            className="rounded-lg p-2 text-brand-800 hover:bg-brand-50"
+            aria-label="Menü"
+          >
+            {menuOpen ? <CloseIcon className="h-6 w-6" /> : <MenuIcon className="h-6 w-6" />}
+          </button>
+        </div>
       </div>
+
+      {/* Mobil açılır menü */}
+      {menuOpen && (
+        <nav className="border-t border-brand-100 bg-white px-4 py-2 md:hidden">
+          {navLinks.map((link) => (
+            <Link
+              key={link.href}
+              href={link.href}
+              onClick={() => setMenuOpen(false)}
+              className="block rounded-lg px-4 py-3 font-medium text-brand-700 transition hover:bg-brand-50"
+            >
+              {link.label}
+            </Link>
+          ))}
+        </nav>
+      )}
     </header>
   );
 }

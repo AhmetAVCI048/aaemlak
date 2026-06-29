@@ -10,8 +10,10 @@ import {
   type IlanTipi,
 } from "@/lib/listings";
 import { SearchIcon } from "./icons";
+import SatisPopup from "./SatisPopup";
 
-// Bodrum / lüks konut temalı premium görseller — otomatik geçiş yapar.
+// Bodrum / lüks konut temalı görseller — otomatik geçiş yapar.
+// (İleride Ahmet'in paylaşacağı gerçek Bodrum fotoğraflarıyla değişecek.)
 const slaytlar = [
   "https://images.unsplash.com/photo-1512917774080-9991f1c4c750?w=1920&q=80",
   "https://images.unsplash.com/photo-1613490493576-7fde63acd811?w=1920&q=80",
@@ -28,7 +30,6 @@ export default function HeroSlider() {
   const [kategori, setKategori] = useState<Kategori | "">("");
   const [konum, setKonum] = useState("");
 
-  // Görseller her 5 saniyede bir yumuşak geçişle değişir
   useEffect(() => {
     const t = setInterval(() => {
       setAktif((a) => (a + 1) % slaytlar.length);
@@ -46,7 +47,7 @@ export default function HeroSlider() {
   };
 
   return (
-    <section className="relative min-h-[620px] overflow-hidden">
+    <section className="relative min-h-[calc(100svh-76px)] overflow-hidden md:min-h-[600px]">
       {/* Kayan görseller (crossfade) */}
       {slaytlar.map((src, i) => (
         <div
@@ -55,35 +56,28 @@ export default function HeroSlider() {
             i === aktif ? "opacity-100" : "opacity-0"
           }`}
         >
-          <Image
-            src={src}
-            alt=""
-            fill
-            priority={i === 0}
-            sizes="100vw"
-            className="object-cover"
-          />
+          <Image src={src} alt="" fill priority={i === 0} sizes="100vw" className="object-cover" />
         </div>
       ))}
 
-      {/* Karartma katmanı (yazılar okunsun) */}
+      {/* Karartma katmanı */}
       <div className="absolute inset-0 bg-gradient-to-b from-brand-900/70 via-brand-900/45 to-brand-900/75" />
 
       {/* İçerik */}
-      <div className="relative mx-auto flex min-h-[620px] max-w-4xl flex-col items-center justify-center px-4 py-16 text-center">
-        <h1 className="max-w-3xl text-3xl font-bold leading-tight text-white drop-shadow-lg sm:text-5xl">
+      <div className="relative mx-auto flex min-h-[calc(100svh-76px)] max-w-4xl flex-col items-center justify-center px-4 py-6 text-center md:min-h-[600px] md:py-16">
+        <h1 className="max-w-3xl text-2xl font-bold leading-tight text-white drop-shadow-lg sm:text-4xl md:text-5xl">
           {siteConfig.tagline}
         </h1>
-        <p className="mx-auto mt-4 max-w-2xl text-brand-100 drop-shadow sm:text-lg">
+        <p className="mx-auto mt-3 max-w-2xl text-sm text-brand-100 drop-shadow sm:text-base md:text-lg">
           Seçkin mülkler, doğru yatırımlar ve size özel çözümler.
         </p>
 
-        {/* Cam (glassmorphism) arama paneli */}
+        {/* Cam arama paneli */}
         <form
           onSubmit={ara}
-          className="mt-8 w-full max-w-3xl rounded-2xl border border-white/20 bg-white/10 p-4 shadow-2xl backdrop-blur-md sm:p-5"
+          className="mt-5 w-full max-w-3xl rounded-2xl border border-white/20 bg-white/10 p-3 shadow-2xl backdrop-blur-md sm:p-4 md:mt-8"
         >
-          <div className="grid gap-3 md:grid-cols-2">
+          <div className="grid gap-2.5 md:grid-cols-2">
             <select
               value={tip}
               onChange={(e) => setTip(e.target.value as IlanTipi | "")}
@@ -120,12 +114,17 @@ export default function HeroSlider() {
 
           <button
             type="submit"
-            className="mt-3 flex w-full items-center justify-center gap-2 rounded-xl bg-accent-500 px-6 py-3.5 font-semibold text-brand-900 transition hover:bg-accent-400"
+            className="mt-2.5 flex h-[3.25rem] w-full items-center justify-center gap-2 rounded-xl bg-accent-500 px-6 font-semibold text-brand-900 transition hover:bg-accent-400"
           >
             <SearchIcon className="h-5 w-5" />
             İlanları Bul
           </button>
         </form>
+
+        {/* Mülkünü sattırma / kiralama butonu */}
+        <div className="mt-3 w-full max-w-3xl">
+          <SatisPopup triggerClassName="flex h-[3.25rem] w-full items-center justify-center gap-2 rounded-xl bg-white/15 px-5 font-semibold text-white ring-1 ring-white/40 backdrop-blur-md transition hover:bg-white/25" />
+        </div>
       </div>
     </section>
   );
