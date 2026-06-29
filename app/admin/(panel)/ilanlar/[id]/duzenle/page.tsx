@@ -1,5 +1,5 @@
 import { notFound } from "next/navigation";
-import { ilanGetir } from "@/lib/listings";
+import { ilanGetirDb } from "@/lib/ilanlar-db";
 import IlanForm from "@/components/admin/IlanForm";
 
 export default async function IlanDuzenlePage({
@@ -8,7 +8,7 @@ export default async function IlanDuzenlePage({
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
-  const ilan = ilanGetir(id);
+  const ilan = await ilanGetirDb(id);
   if (!ilan) notFound();
 
   return <IlanForm ilan={ilan} />;

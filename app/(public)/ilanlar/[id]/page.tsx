@@ -2,12 +2,11 @@ import { notFound } from "next/navigation";
 import type { Metadata } from "next";
 import Link from "next/link";
 import {
-  ilanGetir,
-  ornekIlanlar,
   fiyatFormatla,
   tipEtiketleri,
   kategoriEtiketleri,
 } from "@/lib/listings";
+import { ilanGetirDb, tumIlanlar } from "@/lib/ilanlar-db";
 import { siteConfig, whatsappLink } from "@/lib/site-config";
 import IlanGaleri from "@/components/IlanGaleri";
 import IlanDetayTabs from "@/components/IlanDetayTabs";
@@ -24,7 +23,7 @@ type Props = { params: Promise<{ id: string }> };
 // WhatsApp/Instagram'da link paylaşıldığında çıkacak önizleme kartı
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { id } = await params;
-  const ilan = ilanGetir(id);
+  const ilan = await ilanGetirDb(id);
   if (!ilan) return { title: "İlan bulunamadı" };
 
   const baslik = `${ilan.baslik} — ${fiyatFormatla(ilan.fiyat)}`;
@@ -41,7 +40,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
 export default async function IlanDetayPage({ params }: Props) {
   const { id } = await params;
-  const ilan = ilanGetir(id);
+  const ilan = await ilanGetirDb(id);
   if (!ilan) notFound();
 
   // "Hemen mesaj at" için hazır WhatsApp mesajı
@@ -57,7 +56,8 @@ Detaylı bilgi alabilir miyim?`;
   const ilanUrl = `${siteConfig.siteUrl}/ilanlar/${ilan.id}`;
 
   // Benzer ilanlar: aynı kategori, kendisi hariç
-  const benzer = ornekIlanlar
+  const hepsi = await tumIlanlar();
+  const benzer = hepsi
     .filter((i) => i.id !== ilan.id && i.kategori === ilan.kategori)
     .slice(0, 4);
 

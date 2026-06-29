@@ -3,7 +3,6 @@
 import { useMemo, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import {
-  ornekIlanlar,
   type Ilan,
   type IlanTipi,
   type Kategori,
@@ -14,7 +13,7 @@ import { SearchIcon } from "./icons";
 
 const ODA_SECENEKLERI = ["1+1", "2+1", "3+1", "4+1", "5+1"];
 
-export default function IlanlarClient() {
+export default function IlanlarClient({ ilanlar }: { ilanlar: Ilan[] }) {
   const params = useSearchParams();
 
   const [tip, setTip] = useState<IlanTipi | "">((params.get("tip") as IlanTipi) || "");
@@ -47,7 +46,7 @@ export default function IlanlarClient() {
   };
 
   const sonuclar = useMemo(() => {
-    const list = ornekIlanlar.filter((i) => gecer(i, ""));
+    const list = ilanlar.filter((i) => gecer(i, ""));
     return [...list].sort((a, b) => {
       if (siralama === "ucuz") return a.fiyat - b.fiyat;
       if (siralama === "pahali") return b.fiyat - a.fiyat;
@@ -59,21 +58,21 @@ export default function IlanlarClient() {
   // Diğer filtrelere göre uygun seçenekler (faceted daraltma)
   const mevcutTip = useMemo(
     () => (["satilik", "kiralik"] as IlanTipi[]).filter((t) =>
-      ornekIlanlar.some((i) => i.tip === t && gecer(i, "tip"))
+      ilanlar.some((i) => i.tip === t && gecer(i, "tip"))
     ),
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [kategori, minFiyat, maxFiyat, oda, maxYas, konum]
   );
   const mevcutKategori = useMemo(
     () => (Object.keys(kategoriEtiketleri) as Kategori[]).filter((k) =>
-      ornekIlanlar.some((i) => i.kategori === k && gecer(i, "kategori"))
+      ilanlar.some((i) => i.kategori === k && gecer(i, "kategori"))
     ),
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [tip, minFiyat, maxFiyat, oda, maxYas, konum]
   );
   const mevcutOda = useMemo(
     () => ODA_SECENEKLERI.filter((o) =>
-      ornekIlanlar.some((i) => i.odaSayisi === o && gecer(i, "oda"))
+      ilanlar.some((i) => i.odaSayisi === o && gecer(i, "oda"))
     ),
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [tip, kategori, minFiyat, maxFiyat, maxYas, konum]

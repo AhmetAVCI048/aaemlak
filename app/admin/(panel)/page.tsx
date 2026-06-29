@@ -1,12 +1,14 @@
 import Link from "next/link";
-import { ornekIlanlar, tipEtiketleri } from "@/lib/listings";
+import { tipEtiketleri } from "@/lib/listings";
+import { tumIlanlar } from "@/lib/ilanlar-db";
 import { PlusIcon, ListIcon, FileIcon, SettingsIcon } from "@/components/icons";
 
-export default function AdminDashboard() {
-  const toplam = ornekIlanlar.length;
-  const satilik = ornekIlanlar.filter((i) => i.tip === "satilik").length;
-  const kiralik = ornekIlanlar.filter((i) => i.tip === "kiralik").length;
-  const aktif = ornekIlanlar.filter((i) => i.durum === "aktif").length;
+export default async function AdminDashboard() {
+  const ilanlar = await tumIlanlar();
+  const toplam = ilanlar.length;
+  const satilik = ilanlar.filter((i) => i.tip === "satilik").length;
+  const kiralik = ilanlar.filter((i) => i.tip === "kiralik").length;
+  const aktif = ilanlar.filter((i) => i.durum === "aktif").length;
 
   const istatistik = [
     { etiket: "Toplam İlan", deger: toplam, renk: "text-brand-800" },
@@ -65,7 +67,7 @@ export default function AdminDashboard() {
         </Link>
       </div>
       <div className="mt-3 overflow-hidden rounded-2xl border border-brand-100 bg-white shadow-sm">
-        {ornekIlanlar.slice(0, 4).map((ilan) => (
+        {ilanlar.slice(0, 4).map((ilan) => (
           <Link
             key={ilan.id}
             href={`/admin/ilanlar/${ilan.id}/duzenle`}
