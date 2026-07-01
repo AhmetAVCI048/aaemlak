@@ -12,15 +12,13 @@ import {
 import { SearchIcon } from "./icons";
 import SatisPopup from "./SatisPopup";
 
-// Bodrum / lüks konut temalı görseller — otomatik geçiş yapar.
-// (İleride Ahmet'in paylaşacağı gerçek Bodrum fotoğraflarıyla değişecek.)
+// Bodrum temalı arka plan görselleri (public klasöründeki yerel dosyalar).
 const slaytlar = [
-  "https://images.unsplash.com/photo-1512917774080-9991f1c4c750?w=1920&q=80",
-  "https://images.unsplash.com/photo-1613490493576-7fde63acd811?w=1920&q=80",
-  "https://images.unsplash.com/photo-1499793983690-e29da59ef1c2?w=1920&q=80",
-  "https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?w=1920&q=80",
-  "https://images.unsplash.com/photo-1564013799919-ab600027ffc6?w=1920&q=80",
-  "https://images.unsplash.com/photo-1568605114967-8130f3a36994?w=1920&q=80",
+  "/foto1.jpeg",
+  "/foto2.jpeg",
+  "/foto3.jpeg",
+  "/foto4.jpeg",
+  "/foto5.jpeg",
 ];
 
 export default function HeroSlider() {
