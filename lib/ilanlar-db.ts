@@ -48,7 +48,8 @@ export async function tumIlanlar(): Promise<Ilan[]> {
     .from("ilanlar")
     .select("*")
     .order("olusturma_tarihi", { ascending: false });
-  if (error || !data) return ornekIlanlar;
+  // Yapılandırılmış ama hata olursa örnek veri göstermek yanıltıcı olur → boş dön
+  if (error || !data) return [];
   return data.map(satirToIlan);
 }
 

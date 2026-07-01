@@ -10,6 +10,7 @@ import { ilanGetirDb, tumIlanlar } from "@/lib/ilanlar-db";
 import { siteConfig, whatsappLink } from "@/lib/site-config";
 import IlanGaleri from "@/components/IlanGaleri";
 import IlanDetayTabs from "@/components/IlanDetayTabs";
+import DanismanFoto from "@/components/DanismanFoto";
 import IlanKart from "@/components/IlanKart";
 import {
   WhatsAppIcon,
@@ -121,9 +122,7 @@ Detaylı bilgi alabilir miyim?`;
 
             {/* Danışman */}
             <div className="mt-5 flex items-center gap-3 border-t border-brand-100 pt-5">
-              <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-brand-800 font-bold text-accent-400">
-                AA
-              </span>
+              <DanismanFoto src={siteConfig.danismanFoto} ad={siteConfig.danismanAdi} />
               <div>
                 <div className="font-bold text-brand-800">{siteConfig.danismanAdi}</div>
                 <div className="text-xs text-brand-500">{siteConfig.danismanUnvan}</div>

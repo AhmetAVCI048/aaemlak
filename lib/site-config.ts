@@ -9,6 +9,7 @@ export const siteConfig = {
   siteUrl: "https://aaemlak.com",
   danismanAdi: "Ahmet Avcı",
   danismanUnvan: "Gayrimenkul Danışmanı",
+  danismanFoto: "/poz.jpeg",
 
   // İletişim — bunları Ahmet Avcı'nın gerçek bilgileriyle değiştir
   phone: "+90 532 454 02 48",

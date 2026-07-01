@@ -8,10 +8,22 @@ export default function HakkimdaPage() {
   const c = hakkimdaContent;
   return (
     <div className="mx-auto max-w-4xl px-4 py-12">
-      <p className="font-semibold text-accent-600">{c.altBaslik}</p>
-      <h1 className="mt-1 text-3xl font-bold text-brand-800">{c.baslik}</h1>
+      <div className="flex flex-col items-center gap-6 sm:flex-row sm:items-start">
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img
+          src={siteConfig.danismanFoto}
+          alt={siteConfig.danismanAdi}
+          className="h-40 w-40 shrink-0 rounded-2xl object-cover shadow-md"
+        />
+        <div className="text-center sm:text-left">
+          <p className="font-semibold text-accent-600">{c.altBaslik}</p>
+          <h1 className="mt-1 text-3xl font-bold text-brand-800">{c.baslik}</h1>
+          <p className="mt-2 text-lg font-semibold text-brand-700">{siteConfig.danismanAdi}</p>
+          <p className="text-sm text-brand-500">{siteConfig.danismanUnvan}</p>
+        </div>
+      </div>
 
-      <div className="mt-6 grid grid-cols-3 gap-4">
+      <div className="mt-8 grid grid-cols-3 gap-4">
         {c.istatistikler.map((s) => (
           <div
             key={s.etiket}
