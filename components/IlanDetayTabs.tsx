@@ -143,7 +143,7 @@ function bilgiSatirlari(ilan: Ilan): { label: string; value: string }[] {
     if (value !== undefined && value !== "") list.push({ label, value: String(value) });
   };
 
-  ekle("İlan No", ilan.id);
+  ekle("İlan No", ilan.ilanNo ?? ilan.id);
   ekle("İlan Tarihi", new Date(ilan.olusturmaTarihi).toLocaleDateString("tr-TR"));
   ekle(
     "Emlak Tipi",

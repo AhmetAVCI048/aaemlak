@@ -21,8 +21,8 @@ export const siteConfig = {
   address: "Bodrum / Muğla",
 } as const;
 
-/** wa.me linki üretir; opsiyonel hazır mesaj metni ekler. */
-export function whatsappLink(message?: string): string {
-  const base = `https://wa.me/${siteConfig.whatsappRaw}`;
+/** wa.me linki üretir; opsiyonel hazır mesaj ve opsiyonel numara alır. */
+export function whatsappLink(message?: string, numara?: string): string {
+  const base = `https://wa.me/${numara || siteConfig.whatsappRaw}`;
   return message ? `${base}?text=${encodeURIComponent(message)}` : base;
 }

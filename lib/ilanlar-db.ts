@@ -6,6 +6,7 @@ function satirToIlan(r: Record<string, unknown>): Ilan {
   const g = <T,>(v: unknown): T | undefined => (v == null ? undefined : (v as T));
   return {
     id: String(r.id),
+    ilanNo: g<number>(r.ilan_no),
     baslik: String(r.baslik ?? ""),
     aciklama: String(r.aciklama ?? ""),
     fiyat: Number(r.fiyat ?? 0),

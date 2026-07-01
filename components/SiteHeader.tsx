@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useState } from "react";
-import { siteConfig, whatsappLink } from "@/lib/site-config";
+import { whatsappLink } from "@/lib/site-config";
 import Logo from "./Logo";
 import {
   WhatsAppIcon,
@@ -22,13 +22,21 @@ const navLinks = [
 // Instagram'ın kendi marka gradyanı
 const instaGradient = "bg-[linear-gradient(45deg,#feda75,#d62976,#4f5bd5)]";
 
-export default function SiteHeader() {
+export default function SiteHeader({
+  brandName,
+  whatsapp,
+  instagram,
+}: {
+  brandName: string;
+  whatsapp: string;
+  instagram: string;
+}) {
   const [menuOpen, setMenuOpen] = useState(false);
 
   return (
     <header className="sticky top-0 z-50 border-b border-brand-100 bg-white/95 backdrop-blur">
       <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-2.5">
-        <Link href="/" aria-label={siteConfig.brandName}>
+        <Link href="/" aria-label={brandName}>
           <Logo className="h-12 w-auto text-brand-900 md:h-16" />
         </Link>
 
@@ -47,7 +55,7 @@ export default function SiteHeader() {
           </nav>
           <div className="flex items-center gap-2">
             <a
-              href={siteConfig.instagram}
+              href={instagram}
               target="_blank"
               rel="noopener noreferrer"
               aria-label="Instagram"
@@ -57,7 +65,7 @@ export default function SiteHeader() {
               <span className="hidden lg:inline">Instagram</span>
             </a>
             <a
-              href={whatsappLink("Merhaba, ilanlarınız hakkında bilgi almak istiyorum.")}
+              href={whatsappLink("Merhaba, ilanlarınız hakkında bilgi almak istiyorum.", whatsapp)}
               target="_blank"
               rel="noopener noreferrer"
               aria-label="WhatsApp"
@@ -67,7 +75,7 @@ export default function SiteHeader() {
               <span className="hidden lg:inline">WhatsApp</span>
             </a>
             <a
-              href={`tel:${siteConfig.phoneRaw}`}
+              href={`tel:${whatsapp}`}
               aria-label="Ara"
               className="flex items-center gap-1.5 rounded-full bg-accent-500 px-3 py-2 font-medium text-brand-900 transition hover:bg-accent-400"
             >
@@ -80,7 +88,7 @@ export default function SiteHeader() {
         {/* Mobil: Instagram / WhatsApp / Ara + menü */}
         <div className="flex items-center gap-1.5 md:hidden">
           <a
-            href={siteConfig.instagram}
+            href={instagram}
             target="_blank"
             rel="noopener noreferrer"
             aria-label="Instagram"
@@ -98,7 +106,7 @@ export default function SiteHeader() {
             <WhatsAppIcon className="h-5 w-5" />
           </a>
           <a
-            href={`tel:${siteConfig.phoneRaw}`}
+            href={`tel:${whatsapp}`}
             aria-label="Ara"
             className="rounded-full bg-accent-500 p-2 text-brand-900 transition hover:bg-accent-400"
           >

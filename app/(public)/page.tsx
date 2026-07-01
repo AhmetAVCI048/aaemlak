@@ -1,12 +1,14 @@
 import Link from "next/link";
 import { type Ilan } from "@/lib/listings";
 import { tumIlanlar } from "@/lib/ilanlar-db";
+import { getAyarlar } from "@/lib/ayarlar";
 import HeroSlider from "@/components/HeroSlider";
 import OneCikanlar from "@/components/OneCikanlar";
 import KategoriSeridi from "@/components/KategoriSeridi";
 
 export default async function HomePage() {
   const ilanlar = await tumIlanlar();
+  const ayarlar = await getAyarlar();
   const aktif = ilanlar.filter((i) => i.durum !== "satildi");
 
   // Öne çıkanlar: rozetli (Fırsat/Acil vb.) ilanlar önce; yoksa tüm aktifler
@@ -40,7 +42,7 @@ export default async function HomePage() {
   return (
     <>
       {/* Karşılama — otomatik geçişli görsel slaytı + arama */}
-      <HeroSlider />
+      <HeroSlider whatsapp={ayarlar.whatsapp} />
 
       {/* Öne çıkanlar — otomatik kayan şerit */}
       <section className="py-10">

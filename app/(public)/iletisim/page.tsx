@@ -1,5 +1,6 @@
 import { iletisimContent } from "@/lib/content";
-import { siteConfig, whatsappLink } from "@/lib/site-config";
+import { whatsappLink } from "@/lib/site-config";
+import { getAyarlar } from "@/lib/ayarlar";
 import {
   PhoneIcon,
   WhatsAppIcon,
@@ -9,29 +10,30 @@ import {
 
 export const metadata = { title: "İletişim" };
 
-export default function IletisimPage() {
+export default async function IletisimPage() {
   const c = iletisimContent;
+  const a = await getAyarlar();
 
   const iletisimKartlari = [
     {
       icon: <PhoneIcon className="h-6 w-6" />,
       baslik: "Telefon",
-      deger: siteConfig.phone,
-      href: `tel:${siteConfig.phoneRaw}`,
+      deger: a.phone,
+      href: `tel:${a.whatsapp}`,
       renk: "bg-brand-800",
     },
     {
       icon: <WhatsAppIcon className="h-6 w-6" />,
       baslik: "WhatsApp",
       deger: "Mesaj gönder",
-      href: whatsappLink("Merhaba, bilgi almak istiyorum."),
+      href: whatsappLink("Merhaba, bilgi almak istiyorum.", a.whatsapp),
       renk: "bg-green-600",
     },
     {
       icon: <InstagramIcon className="h-6 w-6" />,
       baslik: "Instagram",
       deger: "Takip et",
-      href: siteConfig.instagram,
+      href: a.instagram,
       renk: "bg-pink-600",
     },
   ];
@@ -67,13 +69,13 @@ export default function IletisimPage() {
           <ul className="space-y-3 text-brand-600">
             <li className="flex items-start gap-3">
               <LocationIcon className="mt-0.5 h-5 w-5 shrink-0 text-accent-600" />
-              <span>{siteConfig.address}</span>
+              <span>{a.address}</span>
             </li>
             <li className="flex items-center gap-3">
               <PhoneIcon className="h-5 w-5 shrink-0 text-accent-600" />
-              <span>{siteConfig.phone}</span>
+              <span>{a.phone}</span>
             </li>
-            <li className="text-sm text-brand-400">{c.calismaSaatleri}</li>
+            <li className="text-sm text-brand-400">{a.calismaSaatleri}</li>
           </ul>
         </div>
 

@@ -21,7 +21,7 @@ const slaytlar = [
   "/foto5.jpeg",
 ];
 
-export default function HeroSlider() {
+export default function HeroSlider({ whatsapp }: { whatsapp: string }) {
   const router = useRouter();
   const [aktif, setAktif] = useState(0);
   const [tip, setTip] = useState<IlanTipi | "">("");
@@ -121,7 +121,10 @@ export default function HeroSlider() {
 
         {/* Mülkünü sattırma / kiralama butonu */}
         <div className="mt-3 w-full max-w-3xl">
-          <SatisPopup triggerClassName="flex h-12 w-full items-center justify-center gap-2 rounded-xl bg-white/10 px-5 font-semibold text-white ring-1 ring-white/30 backdrop-blur-sm transition hover:bg-white/20" />
+          <SatisPopup
+            whatsapp={whatsapp}
+            triggerClassName="flex h-12 w-full items-center justify-center gap-2 rounded-xl bg-white/10 px-5 font-semibold text-white ring-1 ring-white/30 backdrop-blur-sm transition hover:bg-white/20"
+          />
         </div>
       </div>
     </section>

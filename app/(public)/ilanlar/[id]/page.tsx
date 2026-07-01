@@ -8,6 +8,7 @@ import {
 } from "@/lib/listings";
 import { ilanGetirDb, tumIlanlar } from "@/lib/ilanlar-db";
 import { siteConfig, whatsappLink } from "@/lib/site-config";
+import { getAyarlar } from "@/lib/ayarlar";
 import IlanGaleri from "@/components/IlanGaleri";
 import IlanDetayTabs from "@/components/IlanDetayTabs";
 import DanismanFoto from "@/components/DanismanFoto";
@@ -48,13 +49,14 @@ export default async function IlanDetayPage({ params }: Props) {
   const mesaj = `Merhaba, web sitenizdeki şu ilanla ilgileniyorum:
 
 İlan: ${ilan.baslik}
-İlan No: ${ilan.id}
+İlan No: ${ilan.ilanNo ?? ilan.id}
 Fiyat: ${fiyatFormatla(ilan.fiyat)}${ilan.tip === "kiralik" ? " /ay" : ""}
 Konum: ${ilan.mahalle}, ${ilan.ilce}/${ilan.il}
 
 Detaylı bilgi alabilir miyim?`;
 
   const ilanUrl = `${siteConfig.siteUrl}/ilanlar/${ilan.id}`;
+  const a = await getAyarlar();
 
   // Benzer ilanlar: aynı kategori, kendisi hariç
   const hepsi = await tumIlanlar();
@@ -131,7 +133,7 @@ Detaylı bilgi alabilir miyim?`;
 
             <div className="mt-5 space-y-3">
               <a
-                href={whatsappLink(mesaj)}
+                href={whatsappLink(mesaj, a.whatsapp)}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="flex w-full items-center justify-center gap-2 rounded-xl bg-green-600 px-4 py-3.5 font-semibold text-white transition hover:bg-green-500"
@@ -140,7 +142,7 @@ Detaylı bilgi alabilir miyim?`;
                 Hemen Mesaj At
               </a>
               <a
-                href={`tel:${siteConfig.phoneRaw}`}
+                href={`tel:${a.whatsapp}`}
                 className="flex w-full items-center justify-center gap-2 rounded-xl bg-brand-800 px-4 py-3.5 font-semibold text-white transition hover:bg-brand-700"
               >
                 <PhoneIcon className="h-5 w-5" />
@@ -173,7 +175,7 @@ Detaylı bilgi alabilir miyim?`;
                   <FacebookIcon className="h-5 w-5" />
                 </a>
                 <a
-                  href={siteConfig.instagram}
+                  href={a.instagram}
                   target="_blank"
                   rel="noopener noreferrer"
                   aria-label="Instagram"

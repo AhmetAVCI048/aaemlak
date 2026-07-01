@@ -10,6 +10,7 @@ export type IlanDurumu = "aktif" | "rezerve" | "satildi";
 
 export interface Ilan {
   id: string;
+  ilanNo?: number; // kısa/anlamlı sıra no (örn. 1001)
   baslik: string;
   aciklama: string;
   fiyat: number; // TL

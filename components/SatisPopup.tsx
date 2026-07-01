@@ -14,9 +14,11 @@ const ODALAR = ["1+1", "2+1", "3+1", "4+1", "5+1 ve üzeri"];
 export default function SatisPopup({
   triggerClassName,
   triggerLabel = "Mülkünü Sat / Kirala",
+  whatsapp,
 }: {
   triggerClassName?: string;
   triggerLabel?: string;
+  whatsapp?: string;
 }) {
   const [acik, setAcik] = useState(false);
   const [islem, setIslem] = useState<"satmak" | "kiralamak">("satmak");
@@ -41,7 +43,7 @@ export default function SatisPopup({
       "Bilgi verebilir misiniz?",
     ].join("\n");
 
-    window.open(whatsappLink(mesaj), "_blank");
+    window.open(whatsappLink(mesaj, whatsapp), "_blank");
     setAcik(false);
   };
 
